@@ -1,32 +1,44 @@
-backend:
-  build: .
-  links:
-  - "mongo:mongo"
-  - "crawler:crawler"
-  volumes_from:
-  - memorystructure
-  environment:
-  - HYPHE_MONGODB_HOST=mongo
-  - HYPHE_MONGODB_PORT=27017
-  - HYPHE_CRAWLER_HOST=crawler
-  - HYPHE_CRAWLER_PORT=6800
-  ports:
-  - "6978:6978"
+version: "2"
+volumes:
+    traph-data:
+    mongo-data: 
 
-frontend:
-  build: ./hyphe_frontend
-  ports:
-  - "8000:8000"
 
-memorystructure:
-  build: ./memory_structure
+services:
+  backend:
+    image: scpomedialab/hyphe_backend:latest
+    build: .
+    links:
+     - "mongo:mongo"
+     - "crawler:crawler"
+    environment:
+     - HYPHE_MONGODB_HOST=mongo
+     - HYPHE_MONGODB_PORT=27017
+     - HYPHE_CRAWLER_HOST=crawler
+     - HYPHE_CRAWLER_PORT=6800
+     - HYPHE_TRAPH_DATAPATH=/app/traph-data
+    ports:
+     - "6978:6978"
+    volumes:
+      - traph-data:/app/traph-data
 
-crawler:
-  build: ./hyphe_backend/crawler
-  links:
-  - "mongo:mongo"
-  volumes:
-  - ./config/scrapyd.config:/etc/scrapyd/conf.d/100-hyphe
+  frontend:
+    image: scpomedialab/hyphe_frontend:latest
+    build: ./hyphe_frontend
+    ports:
+      - "80:80"
+    links:
+      - "backend:backend"
 
-mongo:
-  image: mongo:3.0
+  crawler:
+    image: scpomedialab/hyphe_crawler:latest
+    build: 
+       context: .
+       dockerfile: ./hyphe_backend/crawler/Dockerfile
+    links:
+      - "mongo:mongo"
+
+  mongo:
+    image: mongo:3.0
+    volumes:
+      - mongo-data:/data/db
