@@ -15,8 +15,6 @@ services:
      - HYPHE_CRAWLER_HOST=crawler
      - HYPHE_CRAWLER_PORT=6800
      - HYPHE_TRAPH_DATAPATH=/app/traph-data
-    ports:
-     - "6978:6978"
     volumes:
       - traph-data:/app/traph-data
   frontend:
